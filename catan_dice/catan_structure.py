@@ -1,13 +1,29 @@
-from catan_dice.catan_structure.structure_type import initialise_structure_resource, initialise_structure_points
 import pygame
+from enum import Enum
+
+class StructureType(Enum):
+    CITY = 0
+    SETTLEMENT = 1
+    ROAD = 2
+    JOKER = 3
+
+def initialise_structure_resource(structure_type):
+    resource_costs = {
+        StructureType.CITY: [3, 2, 0, 0, 0, 0],
+        StructureType.SETTLEMENT: [0, 1, 1, 1, 1, 0],
+        StructureType.ROAD: [0, 0, 0, 1, 1, 0],
+        StructureType.JOKER: [1, 1, 1, 0, 0, 0]
+    }
+    return resource_costs.get(structure_type)
+
 
 class CatanStructure:
-    def __init__(self, structure_type, coordinate):
+    def __init__(self, structure_type, coordinate, points):
         self.structure_type = structure_type
         self.coordinate = coordinate
-        self.resource_costs = initialise_structure_resource(structure_type=structure_type)
+        self.resource_costs = initialise_structure_resource(structure_type)
         self.is_built = False
-        self.points = initialise_structure_points(structure_type=structure_type)
+        self.points = points
         self._colission_box = None
 
     @property
@@ -35,3 +51,11 @@ class CatanStructure:
             if required > available:
                 return False
         return True
+
+
+class JOKER(CatanStructure):
+    def __init__(self, coordinate, points, resource_type):
+        super().__init__(StructureType.JOKER, coordinate, points)
+        self.resource_type = resource_type
+
+

@@ -1,1 +1,1 @@
-__all__ = ["structure_type", "structure"]
+__all__ = ["catan_structure", "catan_board", "catan_player", "assets"]
