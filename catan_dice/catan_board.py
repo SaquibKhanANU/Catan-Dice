@@ -1,55 +1,76 @@
 from catan_dice.catan_structure import *
 from catan_dice.catan_resource import *
-from catan_dice.catan_player import *
 import math
 
 # Hexagonal Grid
-HEXAGON_SIZE = 160
-NUM_HEXAGONS = 6
-NUM_POINTS = 6
-POINT_TYPES = 3 # 1 = vertex, 0 = edge # 2 = center
-SIZE_SCALING = 5.6
 
-BOARD_HEIGHT = HEXAGON_SIZE * SIZE_SCALING
-BOARD_WIDTH = HEXAGON_SIZE * SIZE_SCALING
+NUM_HEXAGONS = 6
+NUM_POINTS = 6 # number of vertciees and edges around a hexagon
+POINT_TYPES = 3 # 1 = vertex, 0 = edge # 2 = center
+
+# HEXAGON_SIZE = 160
+# SIZE_SCALING = 5.6
 
 class CatanBoard:
-    def __init__(self):
-        self.BOARD_HEIGHT = BOARD_HEIGHT
-        self.BOARD_WIDTH = BOARD_WIDTH
+    def __init__(self, structure_blocks_map):
         self.catanBoard = [[[None for _ in range(POINT_TYPES)] for _ in range(NUM_POINTS)] for _ in range(NUM_HEXAGONS)]
-        self.structure_blocks_map = {}
-
-        center_x = self.BOARD_WIDTH/2
-        center_y = self.BOARD_HEIGHT/2
+        self.structure_blocks_map = structure_blocks_map
+    
+    def create_board(self, screen):
+        screen.fill(Colors.OCEAN_BLUE)
+        self.board_width = screen.get_width()
+        self.board_height = screen.get_height()
+        self.hexagon_size = min(self.board_height, self.board_width) // 6
+        center_x = self.board_width/2
+        center_y = self.board_height/2
         # Create multiple hexagons in a circle
         num_hexagons = 6
         self.hexagons = []
         for i in range(num_hexagons):
             angle = math.radians(240 + 60 * i)  # Counter-clockwise, starting from the top-left
-            x = center_x + 1.80 * HEXAGON_SIZE * math.sin(angle)
-            y = center_y + 1.80 * HEXAGON_SIZE * math.cos(angle)
-            self.hexagons.append(Hexagon((x, y), HEXAGON_SIZE))
+            x = center_x + 1.80 * self.hexagon_size * math.sin(angle)
+            y = center_y + 1.80 * self.hexagon_size * math.cos(angle)
+            self.hexagons.append(Hexagon((x, y), self.hexagon_size))
 
+        hexagons = self.hexagons
+        for order_index in range(6):
+            hexagon = hexagons[order_index]
+            vertices = hexagon.vertices
+            pygame.draw.polygon(screen, Colors.DARK_BROWN, vertices, 10)
+            pygame.draw.polygon(screen, Colors.SANDY_BROWN, vertices)
+            image = pygame.image.load(r"catan_dice\assets\HexagonTiles\Hex" + str(order_index) + ".png")
+            x, y = hexagon.calculate_center()
+            if (order_index == 5):
+                scaled_image = pygame.transform.scale(image, (2.3*hexagon.size, 2.3*hexagon.size))
+                screen.blit(scaled_image, (hexagon.center[0]-scaled_image.get_width()/2,hexagon.center[1]-scaled_image.get_height()/2))
+            else:
+                scaled_image = pygame.transform.scale(image, (2.8*hexagon.size, 2.8*hexagon.size))
+                screen.blit(scaled_image, (hexagon.center[0]-scaled_image.get_width()/2,hexagon.center[1]-scaled_image.get_height()/2))
+
+        for structure in self.structure_blocks_map.values():
+            structure.screen = screen
+            self.initialise_structure_at_coordinate(structure)
+            structure.initialise_structure()
+        
     def initialise_structure_at_coordinate(self, structure):
         coordinate = structure.coordinate
-        structure_type = structure.structure_type
         hexagon, point, point_type = coordinate
         if (self.catanBoard[hexagon][point][point_type] != None):
-            raise Exception("Structure already built")
+            print("Structure already built")
         elif (hexagon < 0 or hexagon >= NUM_HEXAGONS):
-            raise Exception("Hexagon out of bounds")
+            print("Hexagon out of bounds")
         elif (point < 0 or point >= NUM_POINTS):
-            raise Exception("Point out of bounds")
+            print("Point out of bounds")
         elif (point_type < 0 or point_type >= POINT_TYPES):
-            raise Exception("Point type out of bounds")
-        self.catanBoard[hexagon][point][point_type] = CatanStructure(structure_type, coordinate, structure.points)
+            print("Point type out of bounds")
+        # structure_type = structure.structure_type
+        # self.catanBoard[hexagon][point][point_type] = CatanStructure(structure_type, coordinate, structure.points, structure.id)
         if (point_type == 0):
-            return self.hexagons[hexagon].edge_midpoints[point]
+            structure.point = self.hexagons[hexagon].edge_midpoints[point]
         elif(point_type == 1):
-            return self.hexagons[hexagon].vertices[point]
+            structure.point = self.hexagons[hexagon].vertices[point]
         elif(point_type == 2):
-            return self.hexagons[hexagon].calculate_center()
+            structure.point = self.hexagons[hexagon].calculate_center()
 
     def get_structure_at_coordinate(self, coordinate):
         hexagon, point, point_type = coordinate
@@ -106,41 +127,42 @@ class Hexagon:
         return (center_x, center_y)
     
 @staticmethod
-def initialise_basic_board(structure_blocks_map):
-    structure_blocks_map["RI"] = CatanStructure(StructureType.ROAD, [0,0,0], 1)
-    structure_blocks_map["R0"] = CatanStructure(StructureType.ROAD, [0,1,0], 1)
-    structure_blocks_map["R1"] = CatanStructure(StructureType.ROAD, [0,2,0], 1)
-    structure_blocks_map["R2"] = CatanStructure(StructureType.ROAD, [1,0,0], 1)
-    structure_blocks_map["R3"] = CatanStructure(StructureType.ROAD, [1,1,0], 1)
-    structure_blocks_map["R4"] = CatanStructure(StructureType.ROAD, [1,2,0], 1)
-    structure_blocks_map["R5"] = CatanStructure(StructureType.ROAD, [2,3,0], 1)
-    structure_blocks_map["R6"] = CatanStructure(StructureType.ROAD, [2,2,0], 1)
-    structure_blocks_map["R7"] = CatanStructure(StructureType.ROAD, [2,1,0], 1)
-    structure_blocks_map["R8"] = CatanStructure(StructureType.ROAD, [2,0,0], 1)
-    structure_blocks_map["R9"] = CatanStructure(StructureType.ROAD, [3,4,0], 1)
-    structure_blocks_map["R10"] = CatanStructure(StructureType.ROAD, [4,3,0], 1)
-    structure_blocks_map["R11"] = CatanStructure(StructureType.ROAD, [4,4,0], 1)
-    structure_blocks_map["R12"] = CatanStructure(StructureType.ROAD, [3,2,0], 1)
-    structure_blocks_map["R13"] = CatanStructure(StructureType.ROAD, [3,1,0], 1)
-    structure_blocks_map["R14"] = CatanStructure(StructureType.ROAD, [3,0,0], 1)
-    structure_blocks_map["R15"] = CatanStructure(StructureType.ROAD, [4,1,0], 1)
+def initialise_structure_blocks_map():
+    structure_blocks_map = {}
+    structure_blocks_map["RI"] = ROAD([0,0,0], "RI")
+    structure_blocks_map["R0"] = ROAD([0,1,0], "R0")
+    structure_blocks_map["R1"] = ROAD([0,2,0], "R1")
+    structure_blocks_map["R2"] = ROAD( [1,0,0], "R2")
+    structure_blocks_map["R3"] = ROAD([1,1,0], "R3")
+    structure_blocks_map["R4"] = ROAD([1,2,0], "R4")
+    structure_blocks_map["R5"] = ROAD([2,3,0], "R5")
+    structure_blocks_map["R6"] = ROAD([2,2,0], "R6")
+    structure_blocks_map["R7"] = ROAD([2,1,0], "R7")
+    structure_blocks_map["R8"] = ROAD([2,0,0], "R8")
+    structure_blocks_map["R9"] = ROAD([3,4,0], "R9")
+    structure_blocks_map["R10"] = ROAD([4,3,0], "R10")
+    structure_blocks_map["R11"] = ROAD([4,4,0], "R11")
+    structure_blocks_map["R12"] = ROAD([3,2,0], "R12")
+    structure_blocks_map["R13"] = ROAD([3,1,0], "R13")
+    structure_blocks_map["R14"] = ROAD([3,0,0], "R14")
+    structure_blocks_map["R15"] = ROAD([4,1,0], "R15")
 
-    structure_blocks_map["C0"] = CatanStructure(StructureType.CITY, [0,2,1], 7)
-    structure_blocks_map["C1"] = CatanStructure(StructureType.CITY, [1,2,1], 12)
-    structure_blocks_map["C2"] = CatanStructure(StructureType.CITY, [3,0,1], 20)
-    structure_blocks_map["C3"] = CatanStructure(StructureType.CITY, [4,0,1], 30)
+    structure_blocks_map["C0"] = CITY([0,2,1], 7, "C0")
+    structure_blocks_map["C1"] = CITY([1,2,1], 12, "C1")
+    structure_blocks_map["C2"] = CITY([3,0,1], 20, "C2")
+    structure_blocks_map["C3"] = CITY([4,0,1], 30, "C3")
 
-    structure_blocks_map["S0"] = CatanStructure(StructureType.SETTLEMENT, [0,0,1], 3)
-    structure_blocks_map["S1"] = CatanStructure(StructureType.SETTLEMENT, [1,0,1], 4)
-    structure_blocks_map["S2"] = CatanStructure(StructureType.SETTLEMENT, [2,2,1], 5)
-    structure_blocks_map["S3"] = CatanStructure(StructureType.SETTLEMENT, [2,0,1], 7)
-    structure_blocks_map["S4"] = CatanStructure(StructureType.SETTLEMENT, [4,2,1], 9)
-    structure_blocks_map["S5"] = CatanStructure(StructureType.SETTLEMENT, [4,4,1], 11)
+    structure_blocks_map["S0"] = SETTLEMENT([0,0,1], 3, "S0")
+    structure_blocks_map["S1"] = SETTLEMENT([1,0,1], 4, "S1")
+    structure_blocks_map["S2"] = SETTLEMENT([2,2,1], 5, "S2")
+    structure_blocks_map["S3"] = SETTLEMENT([2,0,1], 7, "S3")
+    structure_blocks_map["S4"] = SETTLEMENT([4,2,1], 9, "S4")
+    structure_blocks_map["S5"] = SETTLEMENT([4,4,1], 11, "S5")
 
-
-    structure_blocks_map["J0"] = JOKER([0,0,2], 1, ResourceType.ORE)
-    structure_blocks_map["J1"] = JOKER([1,0,2], 2, ResourceType.GRAIN)
-    structure_blocks_map["J2"] = JOKER([2,0,2], 3, ResourceType.WOOL)
-    structure_blocks_map["J3"] = JOKER([3,0,2], 4, ResourceType.TIMBER)
-    structure_blocks_map["J4"] = JOKER([4,0,2], 5, ResourceType.BRICK)
-    structure_blocks_map["J5"] = JOKER([5,0,2], 6, ResourceType.GOLD)
+    structure_blocks_map["J0"] = JOKER([0,0,2], 1, ResourceType.ORE, "J0")
+    structure_blocks_map["J1"] = JOKER([1,0,2], 2, ResourceType.GRAIN, "J1")
+    structure_blocks_map["J2"] = JOKER([2,0,2], 3, ResourceType.WOOL, "J2")
+    structure_blocks_map["J3"] = JOKER([3,0,2], 4, ResourceType.TIMBER, "J3")
+    structure_blocks_map["J4"] = JOKER([4,0,2], 5, ResourceType.BRICK, "J4")
+    structure_blocks_map["J5"] = JOKER([5,0,2], 6, ResourceType.GOLD, "J5")
+    return structure_blocks_map

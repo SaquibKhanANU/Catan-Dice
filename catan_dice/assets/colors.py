@@ -1,3 +1,5 @@
+from pygame import Color
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -8,3 +10,5 @@ OCEAN_BLUE =  (51, 153, 255)
 SANDY_BROWN = (244, 164, 96)
 DARK_BROWN = (101, 67, 33)
 CATAN_GREEN = (72,148,36)
+
+EMPTY = Color(0, 0, 0, 0)

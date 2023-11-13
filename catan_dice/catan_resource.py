@@ -1,7 +1,7 @@
 from enum import Enum
 
-# Create the DICE. 0 = Ore, 1 = Grain, 2 = Wool, 3 = Timber, 4 = Brick, 5 = Gold.
-DICE = [0, 1, 2, 3, 4, 5]
+RESOURCE_WIDTH = 40
+RESOURCE_HEIGHT = 40
 
 class ResourceType(Enum):
     ORE = 0
