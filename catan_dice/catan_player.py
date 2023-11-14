@@ -1,3 +1,4 @@
+
 class CatanPlayer: # Equivalent to a gameState class 
     def __init__(self, catan_board):
         self.resource_state = [10,10,10,10,10,10]

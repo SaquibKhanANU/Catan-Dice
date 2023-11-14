@@ -1,21 +1,14 @@
 from catan_dice.catan_structure import *
-from catan_dice.catan_resource import *
+from catan_dice.catan_enum import *
 import math
 import os
-
-
-# Hexagonal Grid
-
-NUM_HEXAGONS = 6
-NUM_POINTS = 6 # number of vertciees and edges around a hexagon
-POINT_TYPES = 3 # 1 = vertex, 0 = edge # 2 = center
 
 BOARD_HEIGHT = 1000
 BOARD_WIDTH = 1000
 
 class CatanBoard:
     def __init__(self, structure_blocks_map):
-        self.catanBoard = [[[None for _ in range(POINT_TYPES)] for _ in range(NUM_POINTS)] for _ in range(NUM_HEXAGONS)]
+        self.catanBoard = [[[None for _ in range(3)] for _ in range(6)] for _ in range(6)]
         self.structure_blocks_map = structure_blocks_map
         self.board_width = BOARD_WIDTH
         self.board_height = BOARD_HEIGHT
@@ -62,14 +55,6 @@ class CatanBoard:
     def initialise_structure_at_coordinate(self, structure):
         coordinate = structure.coordinate
         hexagon, point, point_type = coordinate
-        if (self.catanBoard[hexagon][point][point_type] != None):
-            print("Structure already built")
-        elif (hexagon < 0 or hexagon >= NUM_HEXAGONS):
-            print("Hexagon out of bounds")
-        elif (point < 0 or point >= NUM_POINTS):
-            print("Point out of bounds")
-        elif (point_type < 0 or point_type >= POINT_TYPES):
-            print("Point type out of bounds")
         # structure_type = structure.structure_type
         # self.catanBoard[hexagon][point][point_type] = CatanStructure(structure_type, coordinate, structure.points, structure.id)
         if (point_type == 0):

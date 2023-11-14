@@ -1,23 +1,7 @@
 import pygame
-from enum import Enum
-import catan_dice.assets.colors as Colors
 import os
-
-class StructureType(Enum):
-    CITY = 0
-    SETTLEMENT = 1
-    ROAD = 2
-    JOKER = 3
-    KNIGHT = 4
-
-def initialise_structure_resource(structure_type):
-    resource_costs = {
-        StructureType.CITY: [3, 2, 0, 0, 0, 0],
-        StructureType.SETTLEMENT: [0, 1, 1, 1, 1, 0],
-        StructureType.ROAD: [0, 0, 0, 1, 1, 0],
-        StructureType.JOKER: [1, 1, 1, 0, 0, 0]
-    }
-    return resource_costs.get(structure_type)
+from catan_dice.catan_enum import *
+import catan_dice.assets.colors as Colors
 
 class CatanStructure:
     def __init__(self, structure_type, coordinate, points, id, connections):
@@ -73,7 +57,6 @@ class CatanStructure:
         hit_box_size = size / 14
         shift_hit_box = hit_box_size / 2
         self.collision_box = pygame.Rect(self.point[0]-shift_hit_box, self.point[1]-shift_hit_box, hit_box_size, hit_box_size)
-        pygame.draw.rect(self.screen, (255, 0, 0), self.collision_box, 2)  # You can change the color and line width if needed
 
     def draw_label(self):
         size = min(self.screen.get_width(), self.screen.get_height())
