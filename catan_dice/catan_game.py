@@ -1,7 +1,17 @@
+
+import os
+import sys
+
+yourpath = os.path.dirname(os.path.abspath(__file__)) #current filepath
+
+parentpath = os.path.abspath(os.path.join(yourpath, os.pardir))
+sys.path.append(parentpath)
+
 import pygame
 import random
 from catan_dice.catan_board import *
 from catan_dice.catan_player import *
+
 
 def main():
     catan_board = CatanBoard(initialise_structure_blocks_map())

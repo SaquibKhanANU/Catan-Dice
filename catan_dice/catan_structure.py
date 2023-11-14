@@ -1,6 +1,7 @@
 import pygame
 from enum import Enum
 import catan_dice.assets.colors as Colors
+import os
 
 class StructureType(Enum):
     CITY = 0
@@ -214,7 +215,10 @@ class JOKER(CatanStructure):
         pygame.draw.circle(self.screen, Colors.BLACK, (x,y-self.size/33), self.size/45)
         pygame.draw.circle(self.screen, Colors.BLACK, self.point, self.size/30)
         pygame.draw.circle(self.screen, color, self.point, self.size/33) 
-        image = pygame.image.load(r"catan_dice\assets\Resources\Resource" + str(self.id[1]) + ".png")
+        folder = "catan_dice"
+        filename = "Resource" + str(self.id[1]) + ".png"
+        image_path = os.path.join(folder, "assets", "Resources", filename)
+        image = pygame.image.load(image_path)        
         image_size = self.size//25
         scaled_image = pygame.transform.scale(image, (image_size, image_size))
         self.screen.blit(scaled_image, (x-image_size/2, y-image_size/2))
