@@ -7,6 +7,7 @@ class StructureType(Enum):
     SETTLEMENT = 1
     ROAD = 2
     JOKER = 3
+    KNIGHT = 4
 
 def initialise_structure_resource(structure_type):
     resource_costs = {
@@ -18,15 +19,17 @@ def initialise_structure_resource(structure_type):
     return resource_costs.get(structure_type)
 
 class CatanStructure:
-    def __init__(self, structure_type, coordinate, points, id):
+    def __init__(self, structure_type, coordinate, points, id, connections):
         self.structure_type = structure_type
         self.coordinate = coordinate
         self.resource_costs = initialise_structure_resource(structure_type)
         self.id = id
         self.is_built = False
         self.points = points
-
         self._colission_box = None
+        self.connections = connections
+
+        # FIX ASSIGNING THSE
         self.point = None
         self.screen = None
 
@@ -50,7 +53,7 @@ class CatanStructure:
 
     def can_build(self, player_resources):
         if self.is_built:
-            raise Exception("Structure already built")
+            return False
         for required, available in zip(self.resource_costs, player_resources):
             if required > available:
                 return False
@@ -59,7 +62,8 @@ class CatanStructure:
     def destroy(self):
         if (self.is_built):
             self.is_built = False
-    
+            print(f"Destroyed a {self.structure_type} at position {self.coordinate}.")
+
     def draw_structure(self):
         pass
     
@@ -87,8 +91,8 @@ class CatanStructure:
         
 
 class ROAD(CatanStructure):
-    def __init__(self, coordinate, id):
-        super().__init__(StructureType.ROAD, coordinate, 1, id)
+    def __init__(self, coordinate, id, connections):
+        super().__init__(StructureType.ROAD, coordinate, 1, id, connections)
         self.surface = None
 
     def draw_structure(self):
@@ -97,8 +101,9 @@ class ROAD(CatanStructure):
         self.surface.fill(Colors.WHITE)
         if (self.id == "RI"):
             self.surface.fill(Colors.PURPLE)
+            self.is_built = True
         elif (self.is_built):
-            self.surface.fill(Colors.RED)
+            self.surface.fill(Colors.CATAN_BROWN)
         rotated_surface = self.surface
         rect = self.surface.get_rect()
         if (self.coordinate[1] == 0 or self.coordinate[1] == 3):
@@ -117,8 +122,8 @@ class ROAD(CatanStructure):
 
 
 class CITY(CatanStructure):
-    def __init__(self, coordinate, points, id):
-        super().__init__(StructureType.CITY, coordinate, points, id)
+    def __init__(self, coordinate, points, id, connections):
+        super().__init__(StructureType.CITY, coordinate, points, id, connections)
 
     def draw_structure(self):
         x, y = self.point
@@ -146,7 +151,11 @@ class CITY(CatanStructure):
             # bring back roof back to center
             (x+house_width/12.5, y),
         ]
-        pygame.draw.polygon(self.screen, Colors.WHITE, vertices)
+        if (self.is_built):
+            color = Colors.CATAN_BROWN
+        else:
+            color = Colors.WHITE
+        pygame.draw.polygon(self.screen, color, vertices)
         pygame.draw.polygon(self.screen, Colors.BLACK, vertices, 3)
 
     def draw_label(self):
@@ -159,8 +168,8 @@ class CITY(CatanStructure):
         self.screen.blit(text, text_rect)
 
 class SETTLEMENT(CatanStructure):
-    def __init__(self, coordinate, points, id):
-        super().__init__(StructureType.SETTLEMENT, coordinate, points, id)
+    def __init__(self, coordinate, points, id, connections):
+        super().__init__(StructureType.SETTLEMENT, coordinate, points, id, connections)
 
     def draw_structure(self):
         x, y = self.point
@@ -181,21 +190,30 @@ class SETTLEMENT(CatanStructure):
             (x, y - house_height),
             ((x - house_width // 2) - house_width/16.5, y),
         ]
-        pygame.draw.polygon(self.screen, Colors.WHITE, vertices)
+        if (self.is_built):
+            color = Colors.CATAN_BROWN
+        else:
+            color = Colors.WHITE
+        pygame.draw.polygon(self.screen, color, vertices)
         pygame.draw.polygon(self.screen, Colors.BLACK, vertices, 3)
 
 class JOKER(CatanStructure):
-    def __init__(self, coordinate, points, resource_type, id):
-        super().__init__(StructureType.JOKER, coordinate, points, id)
+    def __init__(self, coordinate, points, resource_type, id, connections):
+        super().__init__(StructureType.JOKER, coordinate, points, id, connections)
         self.resource_type = resource_type
+        self.is_knight = False
         self.size = None
 
     def draw_structure(self):
         self.size = min(self.screen.get_width(), self.screen.get_height())
         x, y = self.point
+        if (self.is_built):
+            color = Colors.YELLOW
+        else:
+            color = Colors.WHITE
         pygame.draw.circle(self.screen, Colors.BLACK, (x,y-self.size/33), self.size/45)
         pygame.draw.circle(self.screen, Colors.BLACK, self.point, self.size/30)
-        pygame.draw.circle(self.screen, Colors.WHITE, self.point, self.size/33) 
+        pygame.draw.circle(self.screen, color, self.point, self.size/33) 
         image = pygame.image.load(r"catan_dice\assets\Resources\Resource" + str(self.id[1]) + ".png")
         image_size = self.size//25
         scaled_image = pygame.transform.scale(image, (image_size, image_size))
@@ -208,3 +226,4 @@ class JOKER(CatanStructure):
         text_rect = text.get_rect()
         text_rect.center = (self.point[0], self.point[1] - size/25)
         self.screen.blit(text, text_rect)
+

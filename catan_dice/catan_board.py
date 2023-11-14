@@ -8,13 +8,15 @@ NUM_HEXAGONS = 6
 NUM_POINTS = 6 # number of vertciees and edges around a hexagon
 POINT_TYPES = 3 # 1 = vertex, 0 = edge # 2 = center
 
-# HEXAGON_SIZE = 160
-# SIZE_SCALING = 5.6
+BOARD_HEIGHT = 1000
+BOARD_WIDTH = 1000
 
 class CatanBoard:
     def __init__(self, structure_blocks_map):
         self.catanBoard = [[[None for _ in range(POINT_TYPES)] for _ in range(NUM_POINTS)] for _ in range(NUM_HEXAGONS)]
         self.structure_blocks_map = structure_blocks_map
+        self.board_width = BOARD_WIDTH
+        self.board_height = BOARD_HEIGHT
     
     def create_board(self, screen):
         screen.fill(Colors.OCEAN_BLUE)
@@ -128,41 +130,42 @@ class Hexagon:
     
 @staticmethod
 def initialise_structure_blocks_map():
-    structure_blocks_map = {}
-    structure_blocks_map["RI"] = ROAD([0,0,0], "RI")
-    structure_blocks_map["R0"] = ROAD([0,1,0], "R0")
-    structure_blocks_map["R1"] = ROAD([0,2,0], "R1")
-    structure_blocks_map["R2"] = ROAD( [1,0,0], "R2")
-    structure_blocks_map["R3"] = ROAD([1,1,0], "R3")
-    structure_blocks_map["R4"] = ROAD([1,2,0], "R4")
-    structure_blocks_map["R5"] = ROAD([2,3,0], "R5")
-    structure_blocks_map["R6"] = ROAD([2,2,0], "R6")
-    structure_blocks_map["R7"] = ROAD([2,1,0], "R7")
-    structure_blocks_map["R8"] = ROAD([2,0,0], "R8")
-    structure_blocks_map["R9"] = ROAD([3,4,0], "R9")
-    structure_blocks_map["R10"] = ROAD([4,3,0], "R10")
-    structure_blocks_map["R11"] = ROAD([4,4,0], "R11")
-    structure_blocks_map["R12"] = ROAD([3,2,0], "R12")
-    structure_blocks_map["R13"] = ROAD([3,1,0], "R13")
-    structure_blocks_map["R14"] = ROAD([3,0,0], "R14")
-    structure_blocks_map["R15"] = ROAD([4,1,0], "R15")
+    structure_blocks_map = {
+        "RI": ROAD([0, 0, 0], "RI", [[], ["R0"]]),
+        "R0": ROAD([0, 1, 0], "R0", [["RI"], ["R1", "R2"]]),
+        "R1": ROAD([0, 2, 0], "R1", [["R0"], ["C0"]]),
+        "R2": ROAD([1, 0, 0], "R2", [["R0"], [""]]),
+        "R3": ROAD([1, 1, 0], "R3", [["R2"], []]),
+        "R4": ROAD([1, 2, 0], "R4", [["R3"], []]),
+        "R5": ROAD([2, 3, 0], "R5", [["R3"], []]),
+        "R6": ROAD([2, 2, 0], "R6", [["R5"], []]),
+        "R7": ROAD([2, 1, 0], "R7", [["R6"], []]),
+        "R8": ROAD([2, 0, 0], "R8", [["R7"], []]),
+        "R9": ROAD([3, 4, 0], "R9", [["R8"], []]),
+        "R10": ROAD([4, 3, 0], "R10", [["R10"], []]),
+        "R11": ROAD([4, 4, 0], "R11", [["R11"], []]),
+        "R12": ROAD([3, 2, 0], "R12", [["R7"], []]),
+        "R13": ROAD([3, 1, 0], "R13", [["R12"], []]),
+        "R14": ROAD([3, 0, 0], "R14", [["R13"], []]),
+        "R15": ROAD([4, 1, 0], "R15", [["R15"], []]),
 
-    structure_blocks_map["C0"] = CITY([0,2,1], 7, "C0")
-    structure_blocks_map["C1"] = CITY([1,2,1], 12, "C1")
-    structure_blocks_map["C2"] = CITY([3,0,1], 20, "C2")
-    structure_blocks_map["C3"] = CITY([4,0,1], 30, "C3")
+        "C0": CITY([0, 2, 1], 7, "C0", ["R1"]),
+        "C1": CITY([1, 2, 1], 12, "C1", ["R1"]),
+        "C2": CITY([3, 0, 1], 20, "C2", ["R1"]),
+        "C3": CITY([4, 0, 1], 30, "C3", ["R1"]),
 
-    structure_blocks_map["S0"] = SETTLEMENT([0,0,1], 3, "S0")
-    structure_blocks_map["S1"] = SETTLEMENT([1,0,1], 4, "S1")
-    structure_blocks_map["S2"] = SETTLEMENT([2,2,1], 5, "S2")
-    structure_blocks_map["S3"] = SETTLEMENT([2,0,1], 7, "S3")
-    structure_blocks_map["S4"] = SETTLEMENT([4,2,1], 9, "S4")
-    structure_blocks_map["S5"] = SETTLEMENT([4,4,1], 11, "S5")
+        "S0": SETTLEMENT([0, 0, 1], 3, "S0", ["R1"]),
+        "S1": SETTLEMENT([1, 0, 1], 4, "S1", ["R1"]),
+        "S2": SETTLEMENT([2, 2, 1], 5, "S2", ["R1"]),
+        "S3": SETTLEMENT([2, 0, 1], 7, "S3", ["R1"]),
+        "S4": SETTLEMENT([4, 2, 1], 9, "S4", ["R1"]),
+        "S5": SETTLEMENT([4, 4, 1], 11, "S5", ["R1"]),
 
-    structure_blocks_map["J0"] = JOKER([0,0,2], 1, ResourceType.ORE, "J0")
-    structure_blocks_map["J1"] = JOKER([1,0,2], 2, ResourceType.GRAIN, "J1")
-    structure_blocks_map["J2"] = JOKER([2,0,2], 3, ResourceType.WOOL, "J2")
-    structure_blocks_map["J3"] = JOKER([3,0,2], 4, ResourceType.TIMBER, "J3")
-    structure_blocks_map["J4"] = JOKER([4,0,2], 5, ResourceType.BRICK, "J4")
-    structure_blocks_map["J5"] = JOKER([5,0,2], 6, ResourceType.GOLD, "J5")
+        "J0": JOKER([0, 0, 2], 1, ResourceType.ORE, "J0", ["R1"]),
+        "J1": JOKER([1, 0, 2], 2, ResourceType.GRAIN, "J1", ["R1"]),
+        "J2": JOKER([2, 0, 2], 3, ResourceType.WOOL, "J2", ["R1"]),
+        "J3": JOKER([3, 0, 2], 4, ResourceType.TIMBER, "J3", ["R1"]),
+        "J4": JOKER([4, 0, 2], 5, ResourceType.BRICK, "J4", ["R1"]),
+        "J5": JOKER([5, 0, 2], 6, ResourceType.GOLD, "J5", ["R1"]),
+    }
     return structure_blocks_map

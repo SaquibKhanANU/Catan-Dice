@@ -1,16 +1,15 @@
 import pygame
 import random
 from catan_dice.catan_board import *
-
-BOARD_HEIGHT = 1000
-BOARD_WIDTH = 1000
+from catan_dice.catan_player import *
 
 def main():
     catan_board = CatanBoard(initialise_structure_blocks_map())
+    catan_player = CatanPlayer(catan_board)
     pygame.init()
 
     # Set up the display
-    screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT), pygame.RESIZABLE)
+    screen = pygame.display.set_mode((catan_board.board_width, catan_board.board_height), pygame.RESIZABLE, pygame.SRCALPHA)
     pygame.display.set_caption("Catan Dice")
     clock = pygame.time.Clock()
 
@@ -30,10 +29,10 @@ def main():
                         if (event.button == 1):
                         # The click was within this structure's bounds
                         # You can now access the structure's properties
-                            structure.build([10, 10, 10, 10, 10, 10])
-                            print(structure.resource_costs)
+                            catan_player.build_structure(structure)
+                            print(catan_player.resource_state)
                         elif (event.button == 3):
-                            structure.destroy()
+                            catan_player.destory_structure(structure)
                         catan_board.create_board(screen)
 
             elif event.type == pygame.VIDEORESIZE:
