@@ -11,17 +11,15 @@ from catan_dice.catan_board import *
 from catan_dice.catan_player import *
 
 def main():
-    catan_board = CatanBoard(initialise_structure_blocks_map())
-    catan_player = CatanPlayer(catan_board)
     pygame.init()
 
-    # Set up the display
-    screen = pygame.display.set_mode((catan_board.board_width, catan_board.board_height), pygame.RESIZABLE, pygame.SRCALPHA)
+    screen = pygame.display.set_mode((BOARD_WIDTH + PANEL_WIDTH, BOARD_HEIGHT), pygame.RESIZABLE, pygame.SRCALPHA)
     pygame.display.set_caption("Catan Dice")
     clock = pygame.time.Clock()
 
-    screen.fill(Colors.OCEAN_BLUE)
-    catan_board.create_board(screen)
+    catan_board = CatanBoard(initialise_structure_blocks_map(), screen)
+    catan_player = CatanPlayer(catan_board)
+    catan_board.draw_catan_game()
 
     running = True
     while running:
@@ -37,15 +35,18 @@ def main():
                         # The click was within this structure's bounds
                         # You can now access the structure's properties
                             catan_player.build_structure(structure)
-                            print(catan_player.resource_state)
                         elif (event.button == 3):
                             catan_player.destory_structure(structure)
-                        catan_board.create_board(screen)
 
             elif event.type == pygame.VIDEORESIZE:
                 # Handle window resize event
                 screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
-                catan_board.create_board(screen)
+                catan_board.panel_width = min(event.w/3, PANEL_WIDTH)
+                catan_board.draw_catan_game()
+
+            for button in catan_board.control_buttons:
+                if button.handle_event(event) == ActionType.ROLL:
+                    catan_player.roll_dice()
 
         # Rest of your game loop
         pygame.display.flip()

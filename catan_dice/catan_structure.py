@@ -30,8 +30,6 @@ class CatanStructure:
     def build(self, player_resources):
         if self.can_build(player_resources):
             print(f"Building a {self.structure_type} at position {self.coordinate}.")
-            for i in range(len(player_resources)):
-                player_resources[i] -= self.resource_costs[i]
             self.is_built = True
         else:
             print(f"Cannot build {self.structure_type} at position {self.coordinate}. Insufficient resources.")
