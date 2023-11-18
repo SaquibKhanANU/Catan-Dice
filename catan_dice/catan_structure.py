@@ -11,7 +11,7 @@ class CatanStructure:
         self.id = id
         self.is_built = False
         self.points = points
-        self._colission_box = None
+        self._collision_box = None
         self.connections = connections
 
         # FIX ASSIGNING THSE
@@ -20,26 +20,21 @@ class CatanStructure:
 
     @property
     def collision_box(self):
-        return self._colission_box
+        return self._collision_box
     
     @collision_box.setter
     def collision_box(self, collision_box):
         if isinstance(collision_box, pygame.Rect):
-            self._colission_box = collision_box
-        
-    def build(self, player_resources):
-        if self.can_build(player_resources):
-            print(f"Building a {self.structure_type} at position {self.coordinate}.")
-            self.is_built = True
-        else:
-            print(f"Cannot build {self.structure_type} at position {self.coordinate}. Insufficient resources.")
+            self._collision_box = collision_box
 
     def can_build(self, player_resources):
         if self.is_built:
             return False
         for required, available in zip(self.resource_costs, player_resources):
             if required > available:
+                self.is_built = False
                 return False
+        self.is_built = True
         return True
     
     def destroy(self):
@@ -70,6 +65,20 @@ class CatanStructure:
         self.draw_structure()
         self.draw_hit_box()
         self.draw_label()
+
+    def check_build_constraints(self, structure_blocks_map):
+        check = True
+        for connection in self.connections[0]:
+            if (not structure_blocks_map[connection].is_built):
+                check = False
+        return check
+
+    def check_destory_constraints(self, structure_blocks_map):
+        check = True
+        for connection in self.connections[1]:
+            if (structure_blocks_map[connection].is_built):
+                check = False
+        return check
         
 
 class ROAD(CatanStructure):
@@ -212,3 +221,11 @@ class JOKER(CatanStructure):
         text_rect.center = (self.point[0], self.point[1] - size/25)
         self.screen.blit(text, text_rect)
 
+def initialise_structure_resource(structure_type):
+    resource_costs = {
+        StructureType.CITY: [3, 2, 0, 0, 0, 0],
+        StructureType.SETTLEMENT: [0, 1, 1, 1, 1, 0],
+        StructureType.ROAD: [0, 0, 0, 1, 1, 0],
+        StructureType.JOKER: [1, 1, 1, 0, 0, 0]
+    }
+    return resource_costs.get(structure_type)

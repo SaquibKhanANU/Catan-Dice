@@ -23,11 +23,3 @@ class ActionType(Enum):
     TRADE = 2
     END_TURN = 3
 
-def initialise_structure_resource(structure_type):
-    resource_costs = {
-        StructureType.CITY: [3, 2, 0, 0, 0, 0],
-        StructureType.SETTLEMENT: [0, 1, 1, 1, 1, 0],
-        StructureType.ROAD: [0, 0, 0, 1, 1, 0],
-        StructureType.JOKER: [1, 1, 1, 0, 0, 0]
-    }
-    return resource_costs.get(structure_type)

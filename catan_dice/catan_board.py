@@ -17,12 +17,9 @@ class CatanBoard:
         self.panel_width = PANEL_WIDTH
         self.panel_border_width = 10
         self.resource_size = (self.panel_width)/6
-        self.control_buttons = [
-            Button((self.board_width+self.panel_width/8, self.board_height/20, self.panel_width*0.75, self.board_height/10), self.screen, Colors.BLACK,
-                    "ROLL DICE",
-                    lambda: print("NULL")),
-            ]
-    
+        self.control_buttons = []
+        self.resources = []
+
     def draw_board(self):
         self.screen.fill(Colors.OCEAN_BLUE)
         self.board_width = self.screen.get_width() - self.panel_width
@@ -30,11 +27,10 @@ class CatanBoard:
         self.hexagon_size = min(self.board_height, self.board_width) / 6
         center_x = self.board_width/2
         center_y = self.board_height/2
-        # Create multiple hexagons in a circle
         num_hexagons = 6
         self.hexagons = []
         for i in range(num_hexagons):
-            angle = math.radians(240 + 60 * i)  # Counter-clockwise, starting from the top-left
+            angle = math.radians(240 + 60 * i)  
             x = center_x + 1.80 * self.hexagon_size * math.sin(angle)
             y = center_y + 1.80 * self.hexagon_size * math.cos(angle)
             self.hexagons.append(Hexagon((x, y), self.hexagon_size))
@@ -79,7 +75,6 @@ class CatanBoard:
         return self.catanBoard[hexagon][point][point_type]
     
     def draw_panel(self):
-        # border
         panel_border = pygame.Surface((self.panel_width+10, self.board_height))
         panel_border.fill(Colors.BLACK)
         self.screen.blit(panel_border, (self.board_width, 0))
@@ -92,42 +87,69 @@ class CatanBoard:
         self.resource_size = (self.panel_width)/9
         resouces_box_border = pygame.Surface((self.panel_width, self.board_height/2.5))
         resouces_box_border.fill(Colors.BLACK)
-        self.screen.blit(resouces_box_border, (self.board_width, self.board_height/5))
+        self.screen.blit(resouces_box_border, (self.board_width, self.board_height/6.5))
         resouces_box = pygame.Surface((self.panel_width-self.panel_border_width,self.board_height/2.5-self.panel_border_width))
         resouces_box.fill(Colors.WHITE)
-        self.screen.blit(resouces_box, (self.board_width+self.panel_border_width//2, self.board_height/5+self.panel_border_width//2))
-        pygame.draw.line(self.screen, Colors.BLACK, (self.board_width,self.board_height/5+1.25*self.resource_size),
-                          (self.board_width+self.panel_width, self.board_height/5+1.25*self.resource_size), 4)
+        self.screen.blit(resouces_box, (self.board_width+self.panel_border_width//2, self.board_height/6.5+self.panel_border_width//2))
+        pygame.draw.line(self.screen, Colors.BLACK, (self.board_width,self.board_height/6.5+1.25*self.resource_size),
+                          (self.board_width+self.panel_width, self.board_height/6.5+1.25*self.resource_size), 4)
         margin = self.panel_width / 6
         for i in range(len(DICE)):
             resource_image = pygame.image.load(r"catan_dice\assets\Resources\Resource" + str(i) + ".png")
             resource_image = pygame.transform.scale(resource_image, (self.resource_size, self.resource_size))
             col = i % len(DICE)
             x = col * (margin)
-            self.screen.blit(resource_image, (self.board_width + x+self.panel_border_width, self.board_height/5+self.panel_border_width/2))
+            self.screen.blit(resource_image, (self.board_width + x+self.panel_border_width, self.board_height/6.5+self.panel_border_width/2))
 
     def draw_dice_roll(self, resource_state):
+        self.resources = []
         margin = self.panel_width / 6
-        resource_display = pygame.Surface((self.panel_width-self.panel_border_width,(self.board_height/2.5-self.panel_border_width)-1.25*self.resource_size))
-        resource_display.fill(Colors.YELLOW)
+        resource_display_board = pygame.Surface((self.panel_width-self.panel_border_width,
+                                                 (self.board_height/2.5-self.panel_border_width)-1.25*self.resource_size))
+        resource_display_board.fill(Colors.YELLOW)
         for i, count in enumerate(resource_state):
             row = i // len(DICE)
             col = i % len(DICE)
-            x = col * (margin) 
+            x = col * (margin) + self.panel_border_width//2
             y = row * (margin)
             resource_image = pygame.image.load(r"catan_dice\assets\Resources\Resource" + str(i) + ".png")
             resource_image = pygame.transform.scale(resource_image, (self.resource_size, self.resource_size))
             for _ in range(count):
-                resource_display.blit(resource_image, (x, y))
-                y +=margin  
-        self.screen.blit(resource_display, (self.board_width+self.panel_border_width//2, self.board_height/5+self.panel_border_width//2+1.25*self.resource_size))
+                resource = Resource(i)
+                resource.collision_box = pygame.Rect(self.board_width+self.panel_border_width//2 + x, 
+                                                    self.board_height/6.5+self.panel_border_width//2+1.25*self.resource_size+y, 
+                                                    self.resource_size, self.resource_size)
+                self.resources.append(resource)
+                resource_display_board.blit(resource_image, (x, y))
+                y += margin 
+        self.screen.blit(resource_display_board, (self.board_width+self.panel_border_width//2, self.board_height/6.5+self.panel_border_width//2+1.25*self.resource_size))
 
+    def draw_saved_dice(self, resources_to_roll):
+        margin = self.panel_width / 6
+        reroll_dice_board = pygame.Surface((self.panel_width-self.panel_border_width, 1.25*self.resource_size))
+        reroll_dice_board.fill(Colors.CATAN_GREEN)
+        for i, resource in enumerate(resources_to_roll):
+            if (resource != None):
+                col = i % len(DICE)
+                x = col * (margin) + self.panel_border_width//2
+                resource_image = pygame.image.load(r"catan_dice\assets\Resources\Resource" + str(resource.resource_type) + ".png")
+                resource_image = pygame.transform.scale(resource_image, (self.resource_size, self.resource_size))
+                resource.collision_box = pygame.Rect(self.board_width+self.panel_border_width//2 + x, 
+                                                        self.board_height/6.5-self.panel_border_width//2-1.25*self.resource_size, 
+                                                        self.resource_size, self.resource_size)
+                reroll_dice_board.blit(resource_image, (x,0))
+                self.resources.append(resource)
+        self.screen.blit(reroll_dice_board, (self.board_width + self.panel_border_width//2,  self.board_height/6.5-self.panel_border_width//2-1.25*self.resource_size))
+        
     def draw_buttons(self):
         self.control_buttons = [
-            Button((self.board_width+self.panel_width/8, self.board_height/20, self.panel_width*0.75, self.board_height/10), self.screen, Colors.BLACK,
+            Button((self.board_width+self.panel_width/8, self.board_height/25, self.panel_width*0.75, self.board_height/20), self.screen, Colors.BLACK,
                     "ROLL DICE",
                     ActionType.ROLL),
-            ]
+            Button((self.board_width+self.panel_width/8, self.board_height/1.75, self.panel_width*0.75, self.board_height/20), self.screen, Colors.BLACK,
+                    "END TURN",
+                    ActionType.END_TURN)
+                    ]
         for button in self.control_buttons:
             button.draw()
         
@@ -192,7 +214,7 @@ class Button:
         self.color = color
         self.label = label
         self.screen = screen
-        self.button_font_size = 36
+        self.button_font_size = min(screen.get_width(), screen.get_height())//30
         self.action_type = action_type
 
     def draw(self):
@@ -203,11 +225,17 @@ class Button:
         self.screen.blit(text_surface, text_rect)
 
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.rect.collidepoint(event.pos):
-                return self.action_type
+        if self.rect.collidepoint(event.pos):
+            return self.action_type
+            
+class Resource:
+    def __init__(self, resource_type):
+        self.resource_type = resource_type
+        self.collision_box = None
+        self.rolled = False
 
-    
+        
+        
 def initialise_structure_blocks_map():
     structure_blocks_map = {
         "RI": ROAD([0, 0, 0], "RI", [[], []]),
